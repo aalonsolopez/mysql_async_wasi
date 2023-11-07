@@ -110,7 +110,6 @@ optional = true
 version = "0.22.1"
 optional = true
 
-
 [features]
 default = ["common", "rust_backend"]
 default-rustls = ["common", "rust_backend", "wasmedge-tls"]
@@ -142,3 +141,4 @@ path = "src/lib.rs"
 
 [profile.bench]
 debug = true
+
