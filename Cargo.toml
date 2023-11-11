@@ -7,7 +7,7 @@ license = "MIT/Apache-2.0"
 name = "mysql_async_wasi"
 readme = "README.md"
 repository = "https://github.com/WasmEdge/mysql_async_wasi"
-version = "0.31.5"
+version = "0.31.6"
 exclude = ["test/*"]
 edition = "2018"
 categories = ["asynchronous", "database"]
@@ -53,6 +53,9 @@ tokio_wasi = { version = "1", features = [
 ] }
 tokio-util_wasi = { version = "0.7.2", features = ["codec", "io"] }
 wasmedge_wasi_socket = "0.5"
+wasmedge_rustls_api = { version = "0.1.0", optional = true, features = [
+    "tokio_async",
+] }
 
 # [target.'cfg(not(target_os="wasi"))'.dev-dependencies]
 # tempfile = "3.1.0"
@@ -60,9 +63,22 @@ wasmedge_wasi_socket = "0.5"
 # tokio = { version = "1.0", features = ["macros", "rt", "rt-multi-thread"] }
 # rand = "0.8.0"
 
-[target.'cfg(target_os="wasi")'.dev-dependencies]
+[dev-dependencies]
+tempfile = "3.1.0"
 tokio = { version = "1.0", features = ["io-util", "fs", "net", "time", "rt"] }
 tokio-util = { version = "0.7.2", features = ["codec", "io"] }
+
+[target.'cfg(target_os="wasi")'.dev-dependencies]
+tempfile = "3.1.0"
+tokio_wasi = { version = "1", features = [
+    "io-util",
+    "fs",
+    "net",
+    "time",
+    "rt",
+    "macros",
+] }
+rand = "0.8.0"
 
 
 [dependencies.tokio-rustls]
@@ -94,25 +110,9 @@ optional = true
 version = "0.22.1"
 optional = true
 
-[dev-dependencies]
-tempfile = "3.1.0"
-tokio_wasi = { version = "1", features = [
-    "io-util",
-    "fs",
-    "net",
-    "time",
-    "rt",
-    "macros",
-] }
-rand = "0.8.0"
-
 [features]
 default = ["common", "rust_backend"]
-default-rustls = [
-    "common",
-    "rust_backend",
-    "rustls-tls",
-]
+default-rustls = ["common", "rust_backend", "wasmedge-tls"]
 common = [
     "mysql_common/bigdecimal03",
     "mysql_common/rust_decimal",
@@ -129,6 +129,7 @@ rustls-tls = [
     "webpki-roots",
     "rustls-pemfile",
 ]
+wasmedge-tls = ["wasmedge_rustls_api"]
 minimal = ["flate2/zlib"]
 zlib = ["flate2/zlib"]
 full = ["default", "zlib"]
@@ -140,3 +141,4 @@ path = "src/lib.rs"
 
 [profile.bench]
 debug = true
+
