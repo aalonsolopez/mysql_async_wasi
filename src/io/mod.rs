@@ -152,19 +152,9 @@ impl Future for CheckTcpStream<'_> {
 }
 
 impl Endpoint {
-    #[cfg(all(
-        any(
-            feature = "native-tls-tls",
-            feature = "rustls-tls",
-            feature = "wasmedge-tls"
-        ),
-        unix
-    ))]
+    #[cfg(unix)]
     fn is_socket(&self) -> bool {
-        match self {
-            Self::Socket(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::Socket(_))
     }
 
     /// Checks, that connection is alive.
@@ -194,7 +184,7 @@ impl Endpoint {
             }
             #[cfg(unix)]
             Endpoint::Socket(socket) => {
-                socket.write(&[]).await?;
+                let _ = socket.write(&[]).await?;
                 Ok(())
             }
             Endpoint::Plain(None) => unreachable!(),
@@ -215,7 +205,7 @@ impl Endpoint {
         not(feature = "rustls"),
         not(feature = "wasmedge-tls")
     ))]
-    pub async fn _make_secure(
+    pub async fn make_secure(
         &mut self,
         _domain: String,
         _ssl_opts: crate::SslOpts,
@@ -445,7 +435,6 @@ impl Stream {
     pub(crate) fn set_tcp_nodelay(&self, val: bool) -> io::Result<()> {
         self.codec.as_ref().unwrap().get_ref().set_tcp_nodelay(val)
     }
-    #[cfg(any(not(target_os = "wasi"), feature = "wasmedge-tls"))]
     pub(crate) async fn make_secure(
         &mut self,
         domain: String,
@@ -468,6 +457,11 @@ impl Stream {
     ))]
     pub(crate) fn is_secure(&self) -> bool {
         self.codec.as_ref().unwrap().get_ref().is_secure()
+    }
+
+    #[cfg(unix)]
+    pub(crate) fn is_socket(&self) -> bool {
+        self.codec.as_ref().unwrap().get_ref().is_socket()
     }
 
     pub(crate) fn reset_seq_id(&mut self) {
